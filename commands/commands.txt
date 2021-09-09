@@ -1,0 +1,39 @@
+# This file contains scriptable commands that can be activated by voice
+# Each command is seperated by a period (.)
+# For the format, refer to the README
+
+# Pistol Round
+"Pistol Round"
+BUY <R8 Revolver>
+.
+
+# Pistol Round w Manfred
+"Pistol Round Drop Manfred"
+BUY <R8 Revolver>
+DROP 2
+.
+
+# I'm feeling lucky
+"Let's go"
+RANDOM
+.
+
+# Spam Gun
+"Make it Rain"
+BUY <P2000>
+DROP 2
+BUY <P2000>
+DROP 2
+BUY <P2000>
+DROP 2
+BUY <P2000>
+DROP 2
+BUY <P2000>
+DROP 2
+BUY <P2000>
+DROP 2
+BUY <P2000>
+DROP 2
+BUY <P2000>
+DROP 2
+.
