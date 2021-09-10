@@ -33,8 +33,8 @@ class BuyInterface:
         self.isMP5 = True
         self.isM4A4 = False
 
-        self.alwaysArmour = True
-        self.alwaysKit = True
+        self.alwaysArmour = False
+        self.alwaysKit = False
         self.autoBuyOptions = True
 
         self.load_info()
@@ -114,11 +114,6 @@ class BuyInterface:
         main = items[5:21]
         zeus = items[23]
         grenades = items[25:]
-        print(guns)
-        print(pistols)
-        print(main)
-        print(zeus)
-        print(grenades)
         self.get_balance()
 
         # Buy Armour
@@ -137,36 +132,54 @@ class BuyInterface:
         if self.autoBuyOptions:
             guns += ["Auto Buy", "Re-buy Previous", "ECO"]
         m = random.randint(0, len(guns))
-        if guns[m] == "Auto Buy":
-            press("f3")
-        elif guns[m] == "Re-buy Previous":
-            press("f4")
-        elif guns[m] == "ECO":
-            self.drop(2)
-
-        if m != len(main):
-            self.buy(guns[m])
-            self.balance -= int(self.data[main[m]]["cost"])
+        # cost checking
+        if self.balance < 300:
+            print("Not enough balance for purchase")
         else:
-            print("No buy")
-
-        if 4 < m < 22:
-            p = random.randint(0, len(pistols))
-            if p != len(pistols):
-                self.buy(pistols[p])
-                self.balance -= int(self.data[pistols[p]]["cost"])
+            if m != len(main):
+                if guns[m] == "Auto Buy":
+                    print("AUTO BUY")
+                    press("f3")
+                elif guns[m] == "Re-buy Previous":
+                    print("RE-BUY PREVIOUS")
+                    press("f4")
+                elif guns[m] == "ECO":
+                    print("ECO")
+                    self.drop(2)
+                else:
+                    cost = int(self.data[guns[m]]["cost"])
+                    while cost > self.balance:
+                        m = random.randint(0, len(guns) - 1 - (3 if self.autoBuyOptions else 0))
+                        cost = int(self.data[guns[m]]["cost"])
+                    self.buy(guns[m])
+                    self.balance -= cost
+            else:
+                print("No buy")
 
         # Grenades
         grenades.append("Flashbang")
         g_count = random.randint(0, 4)
         nades = random.sample(grenades, g_count)
         for n in nades:
+            cost = int(self.data[n]["cost"])
+            if cost > self.balance:
+                break
             self.buy(n)
-            self.balance -= int(self.data[n]["cost"])
+            self.balance -= cost
 
-        if random.randint(0, 2) == 0:
+        # Zeus
+        if random.randint(0, 2) == 0 and self.balance > 200:
             self.buy(zeus)
             self.balance -= int(self.data[zeus]["cost"])
+
+        # Pistols
+        if 4 < m < 22:
+            p = random.randint(0, len(pistols))
+            if p != len(pistols):
+                cost = int(self.data[pistols[p]["cost"]])
+                if cost < self.balance:
+                    self.buy(pistols[p])
+                    self.balance -= cost
 
         print("The balance should be:", self.balance)
         self.buy("", end=True)
@@ -174,9 +187,9 @@ class BuyInterface:
     def get_balance(self):
         press(self.BUY)
         sleep(0.5)
-        screenshot("balance.png", region=(0, 350, 150, 50))
+        screenshot("interface/balance.png", region=(0, 350, 150, 50))
         press(self.BUY)
-        im = cv2.imread("balance.png")
+        im = cv2.imread("interface/balance.png")
         im_gray = cv2.cvtColor(im, cv2.COLOR_BGR2GRAY)
         thresh = cv2.threshold(im_gray, 0, 255, cv2.THRESH_BINARY | cv2.THRESH_OTSU)[1]
         info = pytesseract.image_to_data(thresh, output_type=pytesseract.Output.DICT, lang="eng")
@@ -185,7 +198,6 @@ class BuyInterface:
             if text.startswith("$"):
                 self.balance = int(text.strip().replace("$", "", 1))
                 break
-        print(self.balance)
 
         # show thresholding
         # for s in range(len(info["text"])):

@@ -9,13 +9,16 @@ cc = CommandController(buy)
 
 while True:
     try:
-        output = sp.listen()
+        # output = sp.listen()
+        output = "Let's go"
         matches = cc.find_match(output)
         if len(matches) == 0:
             print("Unknown command.")
         else:
             print("Commands matched:", matches)
             cc.run(matches[0])
+
+        break
 
     except KeyboardInterrupt:
         sp.terminate()
