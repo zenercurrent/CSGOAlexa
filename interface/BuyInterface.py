@@ -35,6 +35,7 @@ class BuyInterface:
 
         self.alwaysArmour = True
         self.alwaysKit = True
+        self.autoBuyOptions = True
 
         self.load_info()
 
@@ -108,10 +109,16 @@ class BuyInterface:
 
     def random_buy(self):
         items = list(self.data.keys())
+        guns = items[0:21]
         pistols = items[0:5]
         main = items[5:21]
         zeus = items[23]
         grenades = items[25:]
+        print(guns)
+        print(pistols)
+        print(main)
+        print(zeus)
+        print(grenades)
         self.get_balance()
 
         # Buy Armour
@@ -126,10 +133,28 @@ class BuyInterface:
                 self.buy("Defuse Kit")
                 self.balance -= 400
 
-        m = random.randint(0, len(main))
+        # Random Main Weapon
+        if self.autoBuyOptions:
+            guns += ["Auto Buy", "Re-buy Previous", "ECO"]
+        m = random.randint(0, len(guns))
+        if guns[m] == "Auto Buy":
+            press("f3")
+        elif guns[m] == "Re-buy Previous":
+            press("f4")
+        elif guns[m] == "ECO":
+            self.drop(2)
+
         if m != len(main):
-            self.buy(main[m])
+            self.buy(guns[m])
             self.balance -= int(self.data[main[m]]["cost"])
+        else:
+            print("No buy")
+
+        if 4 < m < 22:
+            p = random.randint(0, len(pistols))
+            if p != len(pistols):
+                self.buy(pistols[p])
+                self.balance -= int(self.data[pistols[p]]["cost"])
 
         # Grenades
         grenades.append("Flashbang")
@@ -138,11 +163,6 @@ class BuyInterface:
         for n in nades:
             self.buy(n)
             self.balance -= int(self.data[n]["cost"])
-
-        p = random.randint(0, len(pistols))
-        if p != len(pistols):
-            self.buy(pistols[p])
-            self.balance -= int(self.data[pistols[p]]["cost"])
 
         if random.randint(0, 2) == 0:
             self.buy(zeus)
