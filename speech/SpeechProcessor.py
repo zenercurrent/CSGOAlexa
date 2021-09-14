@@ -15,13 +15,12 @@ class SpeechProcessor:
         self.audio_stream = None
         self.frame_length = None
 
-        if hotword and keywords_paths is None:
+        if hotword or keywords_paths is None:
             raise ValueError("hotword and keywords_paths must not be None!")
 
-        if hotword:
-            self.hw_listener = HotwordListener(keywords_paths)
-            self.audio_stream = self.hw_listener.audio_stream
-            self.frame_length = self.hw_listener.handle.frame_length
+        self.hw_listener = HotwordListener(keywords_paths)
+        self.audio_stream = self.hw_listener.audio_stream
+        self.frame_length = self.hw_listener.handle.frame_length
 
     def listen(self):
         if self.HOTWORD_FLAG:

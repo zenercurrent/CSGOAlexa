@@ -6,32 +6,14 @@ from tkinter import ttk
 import tkinter as tk
 from tkinter import *
 
+from threading import Thread
+import keyboard
 import yaml
 import os
 
 sp = SpeechProcessor(hotword=False, keywords_paths=["speech/csgo_hotword.ppn"])
 buy = BuyInterface("T")
 cc = CommandController(buy)
-
-
-#
-# while True:
-#     try:
-#         # output = sp.listen()
-#         output = "Let's go"
-#         matches = cc.find_match(output)
-#         if len(matches) == 0:
-#             print("Unknown command.")
-#         else:
-#             print("Commands matched:", matches)
-#             cc.run(matches[0])
-#
-#         break
-#
-#     except KeyboardInterrupt:
-#         sp.terminate()
-#         break
-#
 
 
 class GUI(tk.Tk):
@@ -57,8 +39,58 @@ class Console(tk.Frame):
         self.controller = controller
         self.name = "Console"
 
-        label = Label(self, text="Yo what's up from the Console")
-        label.pack()
+        self.modeFrame = Frame(self, borderwidth=3, pady=10, relief="groove")
+        self.modeFrame.pack(pady=10, anchor="center")
+        self.modeVar = None
+
+        self.setup()
+
+        self.startButton = Button(self, text="Start", pady=5, width=20, command=self.start)
+        self.startButton.pack()
+        self.RUNNING_FLAG = False
+        self.background_thread = None
+
+    def setup(self):
+        self.modeVar = IntVar(self.modeFrame, 0)
+        for i, m in enumerate(("Keyboard Hotkey", "Hotkey Voice", "Hotword Voice (Experimental)")):
+            Radiobutton(self.modeFrame, text=m, padx=10, pady=10, variable=self.modeVar, value=i).pack(side=LEFT)
+
+    def start(self):
+        self.RUNNING_FLAG = not self.RUNNING_FLAG
+        self.startButton["text"] = "Stop" if self.RUNNING_FLAG else "Start"
+        if not self.RUNNING_FLAG:
+            print("Stopping Thread")
+            self.background_thread.RUNNING_FLAG = False
+            return
+
+        mode = self.modeVar.get()
+        assert 0 <= mode < 3
+        if mode == 0:
+            pass
+        elif mode == 1 or mode == 2:
+            sp.HOTWORD_FLAG = mode == 2
+
+            self.background_thread = self.BackgroundThread(mode)
+            self.background_thread.start()
+
+    class BackgroundThread(Thread):
+        def __init__(self, mode):
+            super().__init__()
+            self.mode = mode
+            self.RUNNING_FLAG = False
+
+        def run(self):
+            assert 0 <= self.mode < 3
+            self.RUNNING_FLAG = True
+            while True:
+                if not self.RUNNING_FLAG:
+                    break
+                if self.mode == 1:
+                    keyboard.wait("=")
+                output = sp.listen()
+                matches = cc.find_match(output)
+                if len(matches) > 0:
+                    cc.run(matches[0])
 
 
 class Config(tk.Frame):
@@ -90,7 +122,6 @@ class Config(tk.Frame):
 
     def setup(self):
         # Radio buttons
-        vi = 0
         for r in ((self.ctRadio, self.ctFrame, "CT"), (self.tRadio, self.tFrame, "T")):
             Label(r[1], text=r[2] + " Loadout").grid(column=0, columnspan=3)
             for i, c in enumerate(r[0], 1):
@@ -98,17 +129,16 @@ class Config(tk.Frame):
                 frame.grid(column=1)
 
                 selected = int(self.selected[r[2]][c[0] + "/" + c[1]])
-                self.radioVars.append(IntVar(r[1], selected))
-                Radiobutton(r[1], text=c[0], padx=10, variable=self.radioVars[vi], value=0).grid(row=i, column=1,
-                                                                                                 sticky="w")
-                Radiobutton(r[1], text=c[1], padx=10, variable=self.radioVars[vi], value=1).grid(row=i, column=2,
-                                                                                                 sticky="w")
-                vi += 1
+                var = IntVar(r[1], selected)
+                self.radioVars.append(var)
+                Radiobutton(r[1], text=c[0], padx=10, variable=var, value=0).grid(row=i, column=1,
+                                                                                  sticky="w")
+                Radiobutton(r[1], text=c[1], padx=10, variable=var, value=1).grid(row=i, column=2,
+                                                                                  sticky="w")
 
             r[1].grid_rowconfigure(len(r[0]) + 1, minsize=20)
 
         # Checkboxes
-        vi = 0
         row = max(len(self.ctRadio), len(self.tRadio)) + 1
         for c in ((self.ctCheck, self.ctFrame, "CT"), (self.tCheck, self.tFrame, "T")):
             for i, s in enumerate(c[0], 1):
@@ -116,10 +146,10 @@ class Config(tk.Frame):
                 frame.grid(column=1)
 
                 selected = bool(self.selected[c[2]][s])
-                self.checkVars.append(BooleanVar(c[1], selected))
-                Checkbutton(c[1], text=s, padx=10, variable=self.checkVars[vi]).grid(row=row + i, column=1,
-                                                                                     columnspan=2, sticky="ws")
-                vi += 1
+                var = BooleanVar(c[1], selected)
+                self.checkVars.append(var)
+                Checkbutton(c[1], text=s, padx=10, variable=var).grid(row=row + i, column=1,
+                                                                      columnspan=2, sticky="ws")
 
     def apply_changes(self):
         ct = []

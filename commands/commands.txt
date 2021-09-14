@@ -7,33 +7,27 @@
 BUY <R8 Revolver>
 .
 
-# Pistol Round w Manfred
-"Pistol Round Drop Manfred"
-BUY <R8 Revolver>
-DROP 2
-.
-
 # I'm feeling lucky
-"Let's go"
+"Let's go"`
 RANDOM
 .
 
 # Spam Gun
 "Make it Rain"
-BUY <P2000>
+BUY <Glock-18>
 DROP 2
-BUY <P2000>
+BUY <Glock-18>
 DROP 2
-BUY <P2000>
+BUY <Glock-18>
 DROP 2
-BUY <P2000>
+BUY <Glock-18>
 DROP 2
-BUY <P2000>
+BUY <Glock-18>
 DROP 2
-BUY <P2000>
+BUY <Glock-18>
 DROP 2
-BUY <P2000>
+BUY <Glock-18>
 DROP 2
-BUY <P2000>
+BUY <Glock-18>
 DROP 2
 .
