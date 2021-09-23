@@ -8,18 +8,12 @@ BUY <R8 Revolver>
 .
 
 # I'm feeling lucky
-"Let's go"`
+"Let's go"
 RANDOM
 .
 
 # Spam Gun
 "Make it Rain"
-BUY <Glock-18>
-DROP 2
-BUY <Glock-18>
-DROP 2
-BUY <Glock-18>
-DROP 2
 BUY <Glock-18>
 DROP 2
 BUY <Glock-18>

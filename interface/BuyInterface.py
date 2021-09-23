@@ -7,6 +7,9 @@ import cv2
 import pytesseract
 
 
+pytesseract.pytesseract.tesseract_cmd = r'speech\Tesseract-OCR\tesseract.exe'
+
+
 def press(key):
     pydirectinput.keyDown(key, _pause=False)
     sleep(0.01)
@@ -23,7 +26,6 @@ class BuyInterface:
         self.BUY = "b"
         self.DROP = "g"
         self.data = {}
-        self.MENU_FLAG = False
 
         self.balance = 0
 
@@ -83,21 +85,15 @@ class BuyInterface:
         self.data = {}
         self.load_info()
 
-    def buy(self, __item, end=False):
-        if end:
-            press(self.BUY)
-            self.MENU_FLAG = False
-            return
-
+    def buy(self, __item):
         item = self.data[__item]
         print(__item)
         print("Cost: $" + item["cost"] + "\n")
 
-        if not self.MENU_FLAG:
-            press(self.BUY)
-            self.MENU_FLAG = True
+        press(self.BUY)
         press(item["section"])
         press(item["index"])
+        press(self.BUY)
         if item["section"] in ["5", "6"]:
             print("TRUE!")
             press(self.BUY)
@@ -137,22 +133,22 @@ class BuyInterface:
             print("Not enough balance for purchase")
         else:
             if m != len(main):
-                if guns[m] == "Auto Buy":
-                    print("AUTO BUY")
-                    press("f3")
-                elif guns[m] == "Re-buy Previous":
-                    print("RE-BUY PREVIOUS")
-                    press("f4")
-                elif guns[m] == "ECO":
-                    print("ECO")
-                    self.drop(2)
-                else:
+                if self.autoBuyOptions:
+                    if guns[m] == "Auto Buy":
+                        print("AUTO BUY")
+                        press("f3")
+                    elif guns[m] == "Re-buy Previous":
+                        print("RE-BUY PREVIOUS")
+                        press("f4")
+                    elif guns[m] == "ECO":
+                        print("ECO")
+                        self.drop(2)
+                cost = int(self.data[guns[m]]["cost"])
+                while cost > self.balance:
+                    m = random.randint(0, len(guns) - 1 - (3 if self.autoBuyOptions else 0))
                     cost = int(self.data[guns[m]]["cost"])
-                    while cost > self.balance:
-                        m = random.randint(0, len(guns) - 1 - (3 if self.autoBuyOptions else 0))
-                        cost = int(self.data[guns[m]]["cost"])
-                    self.buy(guns[m])
-                    self.balance -= cost
+                self.buy(guns[m])
+                self.balance -= cost
             else:
                 print("No buy")
 
@@ -176,7 +172,7 @@ class BuyInterface:
         if 4 < m < 22:
             p = random.randint(0, len(pistols))
             if p != len(pistols):
-                cost = int(self.data[pistols[p]["cost"]])
+                cost = int(self.data[pistols[p]]["cost"])
                 if cost < self.balance:
                     self.buy(pistols[p])
                     self.balance -= cost
